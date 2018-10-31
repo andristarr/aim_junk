@@ -13,6 +13,8 @@ public:
 	void AimAtTarget();
 	float Get3dDistance();
 
+	float diffCoords(float,float);
+
 	Aimbot();
 private:
 	HANDLE hProcess;

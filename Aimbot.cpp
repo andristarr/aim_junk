@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "Aimbot.h"
 #include <math.h>
+#include <iostream>
+
+using namespace std;
 
 #define PI 3.14159265
 
@@ -26,8 +29,8 @@ void Aimbot::GetAddies()
 	tempBase = this->playerHP - 0xD0;
 	this->playerbase = tempBase;
 	this->playerPosX = this->playerbase + 0xC;
-	this->playerPosZ = this->playerbase + 0x10;
-	this->playerPosY = this->playerbase + 0x14;
+	this->playerPosY = this->playerbase + 0x10;
+	this->playerPosZ = this->playerbase + 0x14;
 	this->playerViewLR = this->playerbase + 0x18;
 	this->playerViewUD = this->playerbase + 0x1C;
 
@@ -42,8 +45,8 @@ void Aimbot::GetAddies()
 	this->enemyBase = enemyBS;
 	this->enemyHP = this->enemyBase + 0xD0;
 	this->enemyPosX = this->enemyBase + 0xC;
-	this->enemyPosZ = this->enemyBase + 0x10;
-	this->enemyPosY = this->enemyBase + 0x14;
+	this->enemyPosY = this->enemyBase + 0x10;
+	this->enemyPosZ = this->enemyBase + 0x14;
 	this->enemyViewLR = this->enemyBase + 0x18;
 	this->enemyViewUD = this->enemyBase + 0x1C;
 }
@@ -63,12 +66,38 @@ void Aimbot::RefreshValues()
 	AccessMemory::ReadAddress(&(this->hProcess), this->enemyPosZ, &(this->enemyPosZVal));
 }
 
+float Aimbot::diffCoords(float coordFirst, float coordSecond)
+{
+	return (float)(coordFirst - coordSecond);
+}
+
+
+
 void Aimbot::AimAtTarget()
 {
-	//float pitchY = (float)asin((( this->enemyPosZVal - this->playerPosZVal ) / this->Get3dDistance() * 180 / PI) );
-	float pitchY = (float)atan2(this->enemyPosZVal - this->playerPosZVal, this->Get3dDistance()) *180 / PI;
-	float yawX = -(float)atan2(this->enemyPosXVal - this->playerPosXVal, this->enemyPosYVal - this->playerPosYVal) / PI * 180 + 180;
+	//float pitchY = (float)asin((( this->enemyPosZVal - this->playerPosZVal ) / this->Get3dDistance() * 180 / PI) ); OBSOLETE
+	float X, Y, Z;
+	X = this->diffCoords(this->playerPosXVal, this->enemyPosXVal);
+	Y = this->diffCoords(this->playerPosYVal, this->enemyPosYVal);
+	Z = this->diffCoords(this->playerPosZVal, this->enemyPosZVal);
 
+	float rho = (float)sqrt((pow(X, 2)+ pow(Y, 2) + pow(Z, 2)));
+	float theta = (float)acos(Z/rho);
+	theta = theta * 360.0f / PI;
+	float phi = (float)asin(Y / (sqrt(pow(X, 2) + pow(Y, 2))));
+	phi = phi * 360.0f / PI;
+
+	phi = phi - 180.0f;
+	theta = theta - 90.0f;
+
+	cout << "PHI: " << phi << endl;
+	cout << "THETA: " << theta << endl;
+
+	//float pitchY = theta; //  (float)atan2(this->enemyPosZVal - this->playerPosZVal, this->Get3dDistance()) *180 / PI;
+	//float yawX = phi;  // -(float)atan2(this->enemyPosXVal - this->playerPosXVal, this->enemyPosYVal - this->playerPosYVal) / PI * 180 + 180;
+
+	float pitchY = (float)atan2(this->enemyPosZVal - this->playerPosZVal, this->Get3dDistance()) * 180 / PI; 
+	float yawX = -(float)atan2(this->enemyPosXVal - this->playerPosXVal, this->enemyPosYVal - this->playerPosYVal) / PI * 180 + 180;
 	AccessMemory::WriteAddress(&(this->hProcess), this->playerViewUD, &pitchY);
 	AccessMemory::WriteAddress(&(this->hProcess), this->playerViewLR, &yawX );
 }
